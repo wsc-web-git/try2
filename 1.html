@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PremiumCalc • Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
+        
+        :root {
+            --primary: 234 179 8;
+        }
+        
+        .theme-dark {
+            --bg: 15 23 42;
+            --card: 30 41 59;
+            --text: 241 245 249;
+            --accent: 234 179 8;
+        }
+        
+        .theme-light {
+            --bg: 248 250 252;
+            --card: 255 255 255;
+            --text: 15 23 42;
+            --accent: 234 179 8;
+        }
+        
+        .theme-neon {
+            --bg: 15 23 42;
+            --card: 30 41 59;
+            --text: 163 230 187;
+            --accent: 163 230 187;
+        }
+        
+        .theme-ocean {
+            --bg: 15 23 42;
+            --card: 23 37 84;
+            --text: 224 242 254;
+            --accent: 103 232 249;
+        }
+        
+        .theme-rose {
+            --bg: 23 23 23;
+            --card: 64 25 36;
+            --text: 253 230 138;
+            --accent: 244 63 94;
+        }
+        
+        body {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+        
+        .display-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        .calc-button {
+            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .calc-button:active {
+            transform: scale(0.95);
+        }
+        
+        .history-item {
+            transition: all 0.2s ease;
+        }
+        
+        .history-item:hover {
+            background-color: rgb(51 65 85);
+        }
+    </style>
+</head>
+<body class="theme-dark bg-slate-950 text-slate-100 min-h-screen flex">
+    <div class="flex w-full max-w-7xl mx-auto">
+        <!-- Main Calculator -->
+        <div class="flex-1 flex flex-col h-screen p-8">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-yellow-500 rounded-2xl flex items-center justify-center text-slate-950 font-bold text-2xl">P</div>
+                    <div>
+                        <h1 class="text-3xl font-semibold tracking-tighter display-font">PremiumCalc</h1>
+                        <p class="text-xs text-slate-400 -mt-1">Pro Edition</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <!-- Theme Switcher -->
+                    <div class="flex items-center bg-slate-800 rounded-3xl p-1 text-sm">
+                        <button onclick="setTheme('dark')" class="theme-btn px-4 py-2 rounded-3xl flex items-center gap-2 hover:bg-slate-700 transition-colors active-theme" id="btn-dark">
+                            <i class="fa-solid fa-moon"></i>
+                        </button>
+                        <button onclick="setTheme('light')" class="theme-btn px-4 py-2 rounded-3xl flex items-center gap-2 hover:bg-slate-700 transition-colors" id="btn-light">
+                            <i class="fa-solid fa-sun"></i>
+                        </button>
+                        <button onclick="setTheme('neon')" class="theme-btn px-4 py-2 rounded-3xl flex items-center gap-2 hover:bg-slate-700 transition-colors" id="btn-neon">
+                            <i class="fa-solid fa-bolt"></i>
+                        </button>
+                        <button onclick="setTheme('ocean')" class="theme-btn px-4 py-2 rounded-3xl flex items-center gap-2 hover:bg-slate-700 transition-colors" id="btn-ocean">
+                            <i class="fa-solid fa-water"></i>
+                        </button>
+                        <button onclick="setTheme('rose')" class="theme-btn px-4 py-2 rounded-3xl flex items-center gap-2 hover:bg-slate-700 transition-colors" id="btn-rose">
+                            <i class="fa-solid fa-heart"></i>
+                        </button>
+                    </div>
+                    
+                    <button onclick="toggleScientific()" 
+                            class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-3xl flex items-center gap-2 text-sm font-medium transition-colors">
+                        <i class="fa-solid fa-square-root-variable"></i>
+                        <span id="sci-label">Scientific</span>
+                    </button>
+                    
+                    <button onclick="clearHistory()" 
+                            class="px-4 py-2.5 text-red-400 hover:text-red-300 transition-colors">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Display -->
+            <div class="bg-slate-900 rounded-3xl p-8 mb-6 shadow-2xl border border-slate-700">
+                <div id="expression" class="text-slate-400 text-right text-lg min-h-[1.5rem] font-light tracking-wider"></div>
+                <div id="display" 
+                     class="display-font text-7xl text-right font-semibold tracking-tighter text-white min-h-[5rem] flex items-end justify-end">
+                    0
+                </div>
+            </div>
+            
+            <!-- Keyboard -->
+            <div class="grid grid-cols-4 gap-3 flex-1" id="keyboard">
+                <!-- Buttons populated by JS -->
+            </div>
+        </div>
+        
+        <!-- Sidebar: History -->
+        <div class="w-96 bg-slate-900 border-l border-slate-700 flex flex-col h-screen">
+            <div class="p-6 border-b border-slate-700">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-semibold flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        History
+                    </h2>
+                    <span id="history-count" class="text-xs bg-slate-800 px-3 py-1 rounded-full">0 calculations</span>
+                </div>
+            </div>
+            
+            <!-- Saved -->
+            <div class="px-6 py-4 border-b border-slate-700 bg-slate-950">
+                <h3 class="text-sm uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-star"></i>
+                    Saved
+                </h3>
+                <div id="saved-list" class="space-y-2 max-h-60 overflow-auto">
+                    <!-- Saved items populated by JS -->
+                </div>
+            </div>
+            
+            <!-- All History -->
+            <div class="flex-1 overflow-auto p-6 space-y-3" id="history-list">
+                <!-- History populated by JS -->
+            </div>
+            
+            <div class="p-6 border-t border-slate-700 text-center text-xs text-slate-500">
+                Calculations are saved locally
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="hidden fixed bottom-6 right-6 bg-emerald-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3">
+        <i class="fa-solid fa-check"></i>
+        <span id="toast-text"></span>
+    </div>
+
+    <script>
+        // State
+        let currentInput = '0';
+        let previousInput = '';
+        let operator = '';
+        let shouldResetDisplay = false;
+        let isScientific = false;
+        let history = JSON.parse(localStorage.getItem('calcHistory')) || [];
+        let savedCalculations = JSON.parse(localStorage.getItem('savedCalcs')) || [];
+        
+        const display = document.getElementById('display');
+        const expressionDisplay = document.getElementById('expression');
+        const historyList = document.getElementById('history-list');
+        const savedList = document.getElementById('saved-list');
+        const historyCount = document.getElementById('history-count');
+        
+        // Button configuration
+        let buttons = [
+            { text: 'C', class: 'col-span-1 bg-red-500/10 text-red-400 hover:bg-red-500/20' },
+            { text: '±', class: 'bg-slate-700' },
+            { text: '%', class: 'bg-slate-700' },
+            { text: '÷', class: 'bg-amber-500 text-slate-950 font-semibold' },
+            
+            { text: '7' },
+            { text: '8' },
+            { text: '9' },
+            { text: '×', class: 'bg-amber-500 text-slate-950 font-semibold' },
+            
+            { text: '4' },
+            { text: '5' },
+            { text: '6' },
+            { text: '−', class: 'bg-amber-500 text-slate-950 font-semibold' },
+            
+            { text: '1' },
+            { text: '2' },
+            { text: '3' },
+            { text: '+', class: 'bg-amber-500 text-slate-950 font-semibold' },
+            
+            { text: '0', class: 'col-span-2' },
+            { text: '.' },
+            { text: '=', class: 'bg-emerald-500 text-slate-950 font-semibold' },
+        ];
+        
+        function renderKeyboard() {
+            const keyboard = document.getElementById('keyboard');
+            keyboard.innerHTML = '';
+            
+            buttons.forEach(btn => {
+                const button = document.createElement('button');
+                button.textContent = btn.text;
+                button.className = `
+                    calc-button h-20 text-3xl font-medium rounded-3xl 
+                    ${btn.class || 'bg-slate-800 hover:bg-slate-700 text-white'}
+                `;
+                button.onclick = () => handleInput(btn.text);
+                keyboard.appendChild(button);
+            });
+            
+            // Scientific buttons (hidden initially)
+            if (isScientific) {
+                addScientificButtons();
+            }
+        }
+        
+        function addScientificButtons() {
+            // For simplicity, we'll add a few common ones in a separate row later if needed
+            console.log("Scientific mode enabled");
+        }
+        
+        function handleInput(value) {
+            if (['+', '−', '×', '÷'].includes(value)) {
+                handleOperator(value);
+            } else if (value === '=') {
+                calculate();
+            } else if (value === 'C') {
+                clear();
+            } else if (value === '±') {
+                negate();
+            } else if (value === '%') {
+                percent();
+            } else if (value === '.') {
+                handleDecimal();
+            } else {
+                // Digit
+                if (shouldResetDisplay) {
+                    currentInput = value;
+                    shouldResetDisplay = false;
+                } else {
+                    currentInput = currentInput === '0' ? value : currentInput + value;
+                }
+                updateDisplay();
+            }
+        }
+        
+        function handleOperator(nextOperator) {
+            const inputValue = parseFloat(currentInput);
+            
+            if (operator && shouldResetDisplay) {
+                operator = nextOperator;
+                return;
+            }
+            
+            if (previousInput === '') {
+                previousInput = currentInput;
+            } else if (operator) {
+                const result = calculateResult(parseFloat(previousInput), inputValue, operator);
+                previousInput = String(result);
+                currentInput = String(result);
+            }
+            
+            shouldResetDisplay = true;
+            operator = nextOperator;
+            expressionDisplay.textContent = `${previousInput} ${operator}`;
+            updateDisplay();
+        }
+        
+        function calculateResult(first, second, op) {
+            switch(op) {
+                case '+': return first + second;
+                case '−': return first - second;
+                case '×': return first * second;
+                case '÷': return second !== 0 ? first / second : 'Error';
+                default: return second;
+            }
+        }
+        
+        function calculate() {
+            if (!operator) return;
+            
+            let result;
+            const inputValue = parseFloat(currentInput);
+            
+            if (operator === '÷' && inputValue === 0) {
+                result = 'Error';
+            } else {
+                result = calculateResult(parseFloat(previousInput), inputValue, operator);
+            }
+            
+            // Save to history
+            const historyEntry = {
+                id: Date.now(),
+                expression: `${previousInput} ${operator} ${currentInput}`,
+                result: result,
+                timestamp: new Date().toISOString()
+            };
+            
+            history.unshift(historyEntry);
+            if (history.length > 50) history.pop();
+            localStorage.setItem('calcHistory', JSON.stringify(history));
+            
+            renderHistory();
+            
+            currentInput = String(result);
+            previousInput = '';
+            operator = '';
+            shouldResetDisplay = true;
+            expressionDisplay.textContent = '';
+            updateDisplay();
+        }
+        
+        function clear() {
+            currentInput = '0';
+            previousInput = '';
+            operator = '';
+            expressionDisplay.textContent = '';
+            shouldResetDisplay = false;
+            updateDisplay();
+        }
+        
+        function negate() {
+            currentInput = String(parseFloat(currentInput) * -1);
+            updateDisplay();
+        }
+        
+        function percent() {
+            currentInput = String(parseFloat(currentInput) / 100);
+            updateDisplay();
+        }
+        
+        function handleDecimal() {
+            if (!currentInput.includes('.')) {
+                currentInput += '.';
+                updateDisplay();
+            }
+        }
+        
+        function updateDisplay() {
+            display.textContent = currentInput;
+        }
+        
+        function renderHistory() {
+            historyList.innerHTML = '';
+            historyCount.textContent = `${history.length} calculations`;
+            
+            if (history.length === 0) {
+                historyList.innerHTML = `
+                    <div class="text-center py-12 text-slate-500">
+                        <i class="fa-solid fa-clock-rotate-left text-4xl mb-4 opacity-30"></i>
+                        <p>No history yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            history.forEach(entry => {
+                const div = document.createElement('div');
+                div.className = `history-item bg-slate-800 p-4 rounded-2xl cursor-pointer group`;
+                div.innerHTML = `
+                    <div class="text-xs text-slate-400 mb-1">${new Date(entry.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+                    <div class="text-slate-400 text-sm">${entry.expression}</div>
+                    <div class="text-2xl font-semibold text-white mt-1">${entry.result}</div>
+                    <div class="flex gap-3 mt-4 opacity-0 group-hover:opacity-100 transition-all">
+                        <button onclick="saveFromHistory(${entry.id}); event.stopImmediatePropagation();" 
+                                class="flex-1 text-xs py-2 bg-slate-700 hover:bg-amber-500 hover:text-slate-900 rounded-2xl transition-colors">
+                            <i class="fa-solid fa-star"></i> Save
+                        </button>
+                        <button onclick="copyResult('${entry.result}'); event.stopImmediatePropagation();" 
+                                class="flex-1 text-xs py-2 bg-slate-700 hover:bg-slate-600 rounded-2xl transition-colors">
+                            Copy
+                        </button>
+                    </div>
+                `;
+                div.onclick = () => loadFromHistory(entry);
+                historyList.appendChild(div);
+            });
+        }
+        
+        function renderSaved() {
+            savedList.innerHTML = '';
+            
+            if (savedCalculations.length === 0) {
+                savedList.innerHTML = `<p class="text-slate-500 text-sm italic">No saved calculations</p>`;
+                return;
+            }
+            
+            savedCalculations.forEach((entry, index) => {
+                const div = document.createElement('div');
+                div.className = `bg-slate-800/70 p-3 rounded-2xl text-sm`;
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="text-emerald-400">${entry.expression}</div>
+                            <div class="text-2xl font-semibold">${entry.result}</div>
+                        </div>
+                        <button onclick="removeSaved(${index}); event.stopImmediatePropagation()" 
+                                class="text-red-400 hover:text-red-300">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                `;
+                savedList.appendChild(div);
+            });
+        }
+        
+        function saveFromHistory(id) {
+            const entry = history.find(h => h.id === id);
+            if (!entry) return;
+            
+            if (!savedCalculations.find(s => s.id === entry.id)) {
+                savedCalculations.unshift(entry);
+                localStorage.setItem('savedCalcs', JSON.stringify(savedCalculations));
+                renderSaved();
+                showToast('Calculation saved!');
+            }
+        }
+        
+        function removeSaved(index) {
+            savedCalculations.splice(index, 1);
+            localStorage.setItem('savedCalcs', JSON.stringify(savedCalculations));
+            renderSaved();
+        }
+        
+        function loadFromHistory(entry) {
+            currentInput = String(entry.result);
+            updateDisplay();
+            showToast('Loaded from history');
+        }
+        
+        function copyResult(result) {
+            navigator.clipboard.writeText(result);
+            showToast('Copied to clipboard');
+        }
+        
+        function clearHistory() {
+            if (confirm('Clear all history?')) {
+                history = [];
+                localStorage.setItem('calcHistory', JSON.stringify(history));
+                renderHistory();
+            }
+        }
+        
+        function toggleScientific() {
+            isScientific = !isScientific;
+            const label = document.getElementById('sci-label');
+            label.textContent = isScientific ? 'Basic' : 'Scientific';
+            renderKeyboard();
+            showToast(isScientific ? 'Scientific mode enabled' : 'Basic mode');
+        }
+        
+        function setTheme(theme) {
+            document.body.className = `theme-${theme} bg-slate-950 text-slate-100 min-h-screen flex`;
+            
+            // Update active button
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active-theme', 'bg-slate-700');
+                if (btn.id === `btn-${theme}`) {
+                    btn.classList.add('active-theme', 'bg-slate-700');
+                }
+            });
+            
+            localStorage.setItem('preferredTheme', theme);
+        }
+        
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const text = document.getElementById('toast-text');
+            text.textContent = message;
+            toast.classList.remove('hidden');
+            toast.style.transform = 'translateY(0)';
+            
+            setTimeout(() => {
+                toast.style.transform = 'translateY(100px)';
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 300);
+            }, 2500);
+        }
+        
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === '=') {
+                calculate();
+            } else if (e.key === 'Escape') {
+                clear();
+            } else if (e.key === 'Backspace') {
+                currentInput = currentInput.slice(0, -1) || '0';
+                updateDisplay();
+            } else if ('0123456789.'.includes(e.key)) {
+                handleInput(e.key);
+            } else if (e.key === '+') handleInput('+');
+            else if (e.key === '-') handleInput('−');
+            else if (e.key === '*') handleInput('×');
+            else if (e.key === '/') handleInput('÷');
+        });
+        
+        // Initialize
+        function init() {
+            renderKeyboard();
+            updateDisplay();
+            renderHistory();
+            renderSaved();
+            
+            // Load preferred theme
+            const savedTheme = localStorage.getItem('preferredTheme') || 'dark';
+            setTheme(savedTheme);
+            
+            // Demo entry
+            if (history.length === 0) {
+                history.push({
+                    id: Date.now() - 10000,
+                    expression: "125 × 8",
+                    result: "1000",
+                    timestamp: new Date(Date.now() - 600000).toISOString()
+                });
+                localStorage.setItem('calcHistory', JSON.stringify(history));
+                renderHistory();
+            }
+            
+            console.log('%cPremiumCalc Pro initialized ✨', 'color:#eab308; font-family:monospace');
+        }
+        
+        // Start the app
+        window.onload = init;
+    </script>
+</body>
+</html>
